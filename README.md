@@ -2,6 +2,8 @@
 
 Локальный микро-сервер с графическим интерфейсом для работы в связке с пользовательским скриптом **[Ultimate Steam Enhancer (U.S.E.)](https://github.com/0wn3dg0d/Ultimate-Steam-Enhancer)**.
 
+<img width="1652" height="713" alt="Preview" src="https://github.com/user-attachments/assets/f3ec4d18-9fef-445a-acb6-2c4237f781be" />
+
 ## Зачем это нужно?
 Обычные браузерные скрипты (Tampermonkey) не могут напрямую подключаться к скрытой базе данных Steam Network (PICS) из-за строгой политики безопасности браузеров (CORS) и специфического шифрования протоколов Steam. 
 
