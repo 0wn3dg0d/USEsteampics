@@ -34,28 +34,44 @@ function startServer() {
 
     serverApp.get('/status', (req, res) => res.json({ active: true }));
 
-    serverApp.get('/pics/:subid', (req, res) => {
-        const subid = parseInt(req.params.subid);
-        if (!subid) return res.status(400).json({ error: 'Не указан subid' });
+    // Принимаем массив ID через параметр ?subids=1,2,3
+    serverApp.get('/pics', (req, res) => {
+        const subidsParam = req.query.subids;
+        if (!subidsParam) return res.status(400).json({ error: 'Не указаны subids' });
 
-        client.getProductInfo([], [subid], true, (err, apps, packages, unknownApps, unknownPackages) => {
-            sendLog(`Запрос PICS для ID: ${subid}`);
+        // Разбиваем строку по запятой, превращаем в числа, отсеиваем мусор
+        const subids = subidsParam.split(',').map(id => parseInt(id.trim())).filter(id => id);
+        
+        if (subids.length === 0) return res.status(400).json({ error: 'Нет валидных ID' });
+
+        client.getProductInfo([], subids, true, (err, apps, packages, unknownApps, unknownPackages) => {
+            sendLog(`Пакетный запрос PICS для ${subids.length} ID`);
             
             if (err) {
                 sendLog(`❌ Ошибка запроса: ${err.message}`);
                 return res.status(500).json({ error: err.message });
             }
-            if (unknownPackages && unknownPackages.includes(subid)) {
-                sendLog(`❌ Пакет ${subid} требует покупки/токена.`);
-                return res.status(404).json({ error: 'Неизвестный пакет' });
+
+            let result = {};
+
+            // Обрабатываем найденные пакеты
+            if (packages) {
+                for (const id of subids) {
+                    if (packages[id]) {
+                        result[id] = packages[id].packageinfo || packages[id];
+                    }
+                }
             }
-            if (packages && packages[subid]) {
-                sendLog(`✅ Данные успешно найдены для ${subid}`);
-                res.json(packages[subid].packageinfo || packages[subid]);
-            } else {
-                sendLog(`⚠️ Пакет ${subid} не найден.`);
-                res.status(404).json({ error: 'Пакет не найден' });
+
+            // Записываем неизвестные пакеты, чтобы скрипт знал, что они закрыты
+            if (unknownPackages) {
+                for (const id of unknownPackages) {
+                    result[id] = { error: 'unknown_package' };
+                }
             }
+
+            sendLog(`✅ Возвращено данных для ${Object.keys(result).length} пакетов.`);
+            res.json(result);
         });
     });
 
@@ -74,6 +90,7 @@ function createWindow() {
         backgroundColor: '#1b2838', // Цвет Steam до загрузки HTML
         autoHideMenuBar: true,
         title: "USEsteampics",
+		icon: path.join(__dirname, 'build/icon.ico'),
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
@@ -113,7 +130,7 @@ if (!gotTheLock) {
         startServer();
 
         // Создаем иконку в системном трее
-        tray = new Tray(path.join(__dirname, 'icon.png')); // ВНИМАНИЕ: нужна картинка!
+        tray = new Tray(path.join(__dirname, 'icon.png'));
         const contextMenu = Menu.buildFromTemplate([
             { label: 'Показать окно', click: () => mainWindow.show() },
             { type: 'separator' },

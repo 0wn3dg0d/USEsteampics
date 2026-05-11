@@ -1,6 +1,6 @@
 {
   "name": "usesteampics",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Локальный микро-сервер для Ultimate Steam Enhancer",
   "main": "main.js",
   "scripts": {
@@ -10,9 +10,12 @@
   "build": {
     "appId": "com.own3df1x.usesteampics",
     "productName": "USEsteampics",
+    "directories": {
+      "buildResources": "build"
+    },
     "win": {
       "target": "portable",
-      "icon": "icon.png"
+      "icon": "build/icon.ico"
     }
   },
   "dependencies": {
