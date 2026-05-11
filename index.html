@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>USEsteampics Server</title>
+    <style>
+        body {
+            background-color: #1b2838;
+            color: #c6d4df;
+            font-family: "Motiva Sans", Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #67c1f5;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .header p {
+            color: #8f98a0;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .terminal {
+            flex-grow: 1;
+            background-color: #171a21;
+            border: 1px solid #4b6f9c;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-y: auto;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px;}
+        .log-success { color: #A3CF06; }
+        .log-error { color: #ff6961; }
+        .log-info { color: #67c1f5; }
+        .footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2a3f5a;
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+        .links a {
+            color: #67c1f5;
+            text-decoration: none;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 13px;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+        .links a:hover { color: #ffffff; }
+        .hint { color: #8f98a0; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>USEsteampics</h1>
+        <p>Локальный PICS-сервер для Ultimate Steam Enhancer</p>
+    </div>
+
+    <div class="terminal" id="log-container">
+        </div>
+
+    <div class="footer">
+        <div class="links">
+            <a id="link-gf">GreasyFork (Скрипт)</a>
+            <a id="link-gh">GitHub (Скрипт)</a>
+        </div>
+        <div class="hint">Окно можно закрыть, сервер останется в трее ↘</div>
+    </div>
+
+    <script>
+        const { ipcRenderer, shell } = require('electron');
+        const logContainer = document.getElementById('log-container');
+
+        document.getElementById('link-gf').addEventListener('click', () => {
+            shell.openExternal('https://greasyfork.org/ru/scripts/526180-ultimate-steam-enhancer');
+        });
+        document.getElementById('link-gh').addEventListener('click', () => {
+            shell.openExternal('https://github.com/0wn3dg0d/Ultimate-Steam-Enhancer');
+        });
+
+        // Слушаем логи из главного процесса
+        ipcRenderer.on('log-message', (event, message) => {
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            
+            // Раскрашиваем логи
+            if (message.includes('✅') || message.includes('Успешно')) div.classList.add('log-success');
+            else if (message.includes('❌') || message.includes('Ошибка')) div.classList.add('log-error');
+            else if (message.includes('Запрос') || message.includes('Подключение')) div.classList.add('log-info');
+
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(div);
+            
+            logContainer.scrollTop = logContainer.scrollHeight;
+        });
+    </script>
+</body>
+</html>
